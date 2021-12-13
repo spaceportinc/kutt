@@ -1,10 +1,10 @@
 import * as Knex from "knex";
-import prefix from './prefix';
+import prefix from "./prefix";
 
 export async function createHostTable(knex: Knex) {
-  const hasTable = await knex.schema.hasTable(prefix+"hosts");
+  const hasTable = await knex.schema.hasTable(prefix + "hosts");
   if (!hasTable) {
-    await knex.schema.createTable(prefix+"hosts", table => {
+    await knex.schema.createTable(prefix + "hosts", table => {
       table.increments("id").primary();
       table
         .string("address")
@@ -17,7 +17,7 @@ export async function createHostTable(knex: Knex) {
       table
         .integer("banned_by_id")
         .references("id")
-        .inTable(prefix+"users");
+        .inTable(prefix + "users");
       table.timestamps(false, true);
     });
   }

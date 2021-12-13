@@ -1,5 +1,5 @@
 import * as Knex from "knex";
-import prefix from '../models/prefix';
+import prefix from "../models/prefix";
 import bcrypt from "bcryptjs";
 import env from "../env";
 
@@ -12,7 +12,7 @@ export async function up(knex: Knex): Promise<any> {
     verified: true,
     apikey: env.ADMIN_APIKEY
   };
-  await knex(prefix+"users").insert(data);
+  await knex(prefix + "users").insert(data);
 }
 
 export async function down(): Promise<any> {

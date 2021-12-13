@@ -1,5 +1,5 @@
 import * as redis from "../redis";
-import knex, {prefix} from "../knex";
+import knex, { prefix } from "../knex";
 
 interface Add extends Partial<Host> {
   address: string;
@@ -11,7 +11,7 @@ export const find = async (match: Partial<Host>): Promise<Host> => {
     if (cachedHost) return JSON.parse(cachedHost);
   }
 
-  const host = await knex<Domain>(prefix+"hosts")
+  const host = await knex<Domain>(prefix + "hosts")
     .where(match)
     .first();
 
@@ -30,7 +30,7 @@ export const find = async (match: Partial<Host>): Promise<Host> => {
 export const add = async (params: Add) => {
   params.address = params.address.toLowerCase();
 
-  const exists = await knex<Domain>(prefix+"domains")
+  const exists = await knex<Domain>(prefix + "domains")
     .where("address", params.address)
     .first();
 
@@ -41,7 +41,7 @@ export const add = async (params: Add) => {
 
   let host: Host;
   if (exists) {
-    const [response] = await knex<Host>(prefix+"hosts")
+    const [response] = await knex<Host>(prefix + "hosts")
       .where("id", exists.id)
       .update(
         {
@@ -52,7 +52,7 @@ export const add = async (params: Add) => {
       );
     host = response;
   } else {
-    const [response] = await knex<Host>(prefix+"hosts").insert(newHost, "*");
+    const [response] = await knex<Host>(prefix + "hosts").insert(newHost, "*");
     host = response;
   }
 

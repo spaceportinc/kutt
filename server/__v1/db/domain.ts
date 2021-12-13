@@ -1,4 +1,4 @@
-import knex, {prefix} from "../../knex";
+import knex, { prefix } from "../../knex";
 import * as redis from "../../redis";
 import { getRedisKey } from "../../utils";
 
@@ -14,7 +14,7 @@ export const getDomain = async (data: Partial<Domain>): Promise<Domain> => {
 
   if (cachedDomain) return JSON.parse(cachedDomain);
 
-  const domain = await knex<Domain>(prefix+"domains")
+  const domain = await knex<Domain>(prefix + "domains")
     .where(getData)
     .first();
 
@@ -31,7 +31,7 @@ export const setDomain = async (
   matchedDomain: Domain
 ) => {
   // 1. If user has domain, remove it from their possession
-  await knex<Domain>(prefix+"domains")
+  await knex<Domain>(prefix + "domains")
     .where({ user_id: user.id })
     .update({ user_id: null });
 
@@ -46,12 +46,12 @@ export const setDomain = async (
   };
 
   if (matchedDomain) {
-    const [response]: Domain[] = await knex<Domain>(prefix+"domains")
+    const [response]: Domain[] = await knex<Domain>(prefix + "domains")
       .where("id", matchedDomain.id)
       .update(updateDate, "*");
     domain = response;
   } else {
-    const [response]: Domain[] = await knex<Domain>(prefix+"domains").insert(
+    const [response]: Domain[] = await knex<Domain>(prefix + "domains").insert(
       updateDate,
       "*"
     );
@@ -67,7 +67,7 @@ export const setDomain = async (
 
 export const deleteDomain = async (user: UserJoined) => {
   // Remove user from domain, do not actually delete the domain
-  const [domain]: Domain[] = await knex<Domain>(prefix+"domains")
+  const [domain]: Domain[] = await knex<Domain>(prefix + "domains")
     .where({ user_id: user.id })
     .update({ user_id: null, updated_at: new Date().toISOString() }, "*");
 
@@ -91,7 +91,7 @@ export const banDomain = async (
 
   let domain;
   if (currentDomain) {
-    const updates: Domain[] = await knex<Domain>(prefix+"domains")
+    const updates: Domain[] = await knex<Domain>(prefix + "domains")
       .where({ address })
       .update(
         { banned: true, banned_by_id, updated_at: new Date().toISOString() },
@@ -99,7 +99,7 @@ export const banDomain = async (
       );
     domain = updates[0];
   } else {
-    const inserts: Domain[] = await knex<Domain>(prefix+"domains").insert(
+    const inserts: Domain[] = await knex<Domain>(prefix + "domains").insert(
       { address, banned: true, banned_by_id },
       "*"
     );

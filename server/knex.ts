@@ -18,5 +18,5 @@ const db = knex({
   }
 });
 
-export {default as prefix} from './models/prefix';
+export { default as prefix } from "./models/prefix";
 export default db;

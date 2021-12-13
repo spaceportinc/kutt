@@ -1,6 +1,6 @@
 import * as Knex from "knex";
 import * as models from "../models";
-import prefix from '../models/prefix';
+import prefix from "../models/prefix";
 
 export async function up(knex: Knex): Promise<any> {
   await models.createUserTable(knex);

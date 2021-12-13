@@ -1,5 +1,5 @@
 import * as redis from "../redis";
-import knex, {prefix} from "../knex";
+import knex, { prefix } from "../knex";
 
 export const find = async (match: Partial<Domain>): Promise<Domain> => {
   if (match.address) {
@@ -7,7 +7,7 @@ export const find = async (match: Partial<Domain>): Promise<Domain> => {
     if (cachedDomain) return JSON.parse(cachedDomain);
   }
 
-  const domain = await knex<Domain>(prefix+"domains")
+  const domain = await knex<Domain>(prefix + "domains")
     .where(match)
     .first();
 
@@ -24,7 +24,7 @@ export const find = async (match: Partial<Domain>): Promise<Domain> => {
 };
 
 export const get = async (match: Partial<Domain>): Promise<Domain[]> => {
-  return knex<Domain>(prefix+"domains").where(match);
+  return knex<Domain>(prefix + "domains").where(match);
 };
 
 interface Add extends Partial<Domain> {
@@ -34,7 +34,7 @@ interface Add extends Partial<Domain> {
 export const add = async (params: Add) => {
   params.address = params.address.toLowerCase();
 
-  const exists = await knex<Domain>(prefix+"domains")
+  const exists = await knex<Domain>(prefix + "domains")
     .where("address", params.address)
     .first();
 
@@ -47,7 +47,7 @@ export const add = async (params: Add) => {
 
   let domain: Domain;
   if (exists) {
-    const [response]: Domain[] = await knex<Domain>(prefix+"domains")
+    const [response]: Domain[] = await knex<Domain>(prefix + "domains")
       .where("id", exists.id)
       .update(
         {
@@ -58,7 +58,7 @@ export const add = async (params: Add) => {
       );
     domain = response;
   } else {
-    const [response]: Domain[] = await knex<Domain>(prefix+"domains").insert(
+    const [response]: Domain[] = await knex<Domain>(prefix + "domains").insert(
       newDomain,
       "*"
     );
@@ -74,7 +74,7 @@ export const update = async (
   match: Partial<Domain>,
   update: Partial<Domain>
 ) => {
-  const domains = await knex<Domain>(prefix+"domains")
+  const domains = await knex<Domain>(prefix + "domains")
     .where(match)
     .update({ ...update, updated_at: new Date().toISOString() }, "*");
 

@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { isAfter, subDays, set } from "date-fns";
-import knex, {prefix} from "../../knex";
+import knex, { prefix } from "../../knex";
 import * as redis from "../../redis";
 import {
   generateShortLink,
@@ -28,7 +28,7 @@ export const createShortLink = async (data: CreateLink, user: UserJoined) => {
     password = await bcrypt.hash(data.password, salt);
   }
 
-  const [link]: Link[] = await knex<Link>(prefix+"links").insert(
+  const [link]: Link[] = await knex<Link>(prefix + "links").insert(
     {
       domain_id,
       address: data.address,
@@ -49,7 +49,7 @@ export const createShortLink = async (data: CreateLink, user: UserJoined) => {
 };
 
 export const addLinkCount = async (id: number) => {
-  return knex<Link>(prefix+"links")
+  return knex<Link>(prefix + "links")
     .where({ id })
     .increment("visit_count", 1);
 };
@@ -70,7 +70,7 @@ export const createVisit = async (params: ICreateVisit) => {
     referrer: params.referrer.toLowerCase()
   };
 
-  const visit = await knex<Visit>(prefix+"visits")
+  const visit = await knex<Visit>(prefix + "visits")
     .where({ link_id: params.id })
     .andWhere(
       knex.raw("date_trunc('hour', created_at) = date_trunc('hour', ?)", [
@@ -80,7 +80,7 @@ export const createVisit = async (params: ICreateVisit) => {
     .first();
 
   if (visit) {
-    await knex(prefix+"visits")
+    await knex(prefix + "visits")
       .where({ id: visit.id })
       .increment(`br_${data.browser}`, 1)
       .increment(`os_${data.os}`, 1)
@@ -97,7 +97,7 @@ export const createVisit = async (params: ICreateVisit) => {
         )
       });
   } else {
-    await knex<Visit>(prefix+"visits").insert({
+    await knex<Visit>(prefix + "visits").insert({
       [`br_${data.browser}`]: 1,
       countries: { [data.country]: 1 },
       referrers: { [data.referrer]: 1 },
@@ -128,7 +128,7 @@ export const findLink = async ({
 
   if (cachedLink) return JSON.parse(cachedLink);
 
-  const link = await knex<Link>(prefix+"links")
+  const link = await knex<Link>(prefix + "links")
     .where({
       ...(address && { address }),
       ...(domain_id && { domain_id }),
@@ -148,7 +148,7 @@ export const getUserLinksCount = async (params: {
   user_id: number;
   date?: Date;
 }) => {
-  const model = knex<Link>(prefix+"links").where({ user_id: params.user_id });
+  const model = knex<Link>(prefix + "links").where({ user_id: params.user_id });
 
   // TODO: Test counts;
   let res;
@@ -177,36 +177,37 @@ export const getLinks = async (
   const limit = parseInt(count) < 50 ? parseInt(count) : 50;
   const offset = (parseInt(page) - 1) * limit;
 
-  const model = knex<LinkJoinedDomain>(prefix+"links")
+  const model = knex<LinkJoinedDomain>(prefix + "links")
     .select(
-      prefix+"links.id",
-      prefix+"links.address",
-      prefix+"links.banned",
-      prefix+"links.created_at",
-      prefix+"links.domain_id",
-      prefix+"links.updated_at",
-      prefix+"links.password",
-      prefix+"links.target",
-      prefix+"links.visit_count",
-      prefix+"links.user_id",
-      prefix+"links.uuid",
-      prefix+"domains.address as domain"
+      prefix + "links.id",
+      prefix + "links.address",
+      prefix + "links.banned",
+      prefix + "links.created_at",
+      prefix + "links.domain_id",
+      prefix + "links.updated_at",
+      prefix + "links.password",
+      prefix + "links.target",
+      prefix + "links.visit_count",
+      prefix + "links.user_id",
+      prefix + "links.uuid",
+      prefix + "domains.address as domain"
     )
     .offset(offset)
     .limit(limit)
     .orderBy("created_at", "desc")
-    .where(prefix+"links.user_id", user_id);
+    .where(prefix + "links.user_id", user_id);
 
   if (search) {
-    model.andWhereRaw(prefix+"links.address || ' ' || target ILIKE '%' || ? || '%'", [
-      search
-    ]);
+    model.andWhereRaw(
+      prefix + "links.address || ' ' || target ILIKE '%' || ? || '%'",
+      [search]
+    );
   }
 
   const matchedLinks = await model.leftJoin(
-    prefix+"domains",
-    prefix+"links.domain_id",
-    prefix+"domains.id"
+    prefix + "domains",
+    prefix + "links.domain_id",
+    prefix + "domains.id"
   );
 
   const links = matchedLinks.map(link => ({
@@ -227,14 +228,18 @@ interface IDeleteLink {
 }
 
 export const deleteLink = async (data: IDeleteLink) => {
-  const link: LinkJoinedDomain = await knex<LinkJoinedDomain>(prefix+"links")
-    .select(prefix+"links.id", prefix+"domains.address as domain")
-    .where(prefix+"links.address", data.address)
-    .where(prefix+"links.user_id", data.user_id)
+  const link: LinkJoinedDomain = await knex<LinkJoinedDomain>(prefix + "links")
+    .select(prefix + "links.id", prefix + "domains.address as domain")
+    .where(prefix + "links.address", data.address)
+    .where(prefix + "links.user_id", data.user_id)
     .where({
       ...(!data.domain && { domain_id: null })
     })
-    .leftJoin(prefix+"domains", prefix+"links.domain_id", prefix+"domains.id")
+    .leftJoin(
+      prefix + "domains",
+      prefix + "links.domain_id",
+      prefix + "domains.id"
+    )
     .first();
 
   if (!link) return;
@@ -243,11 +248,11 @@ export const deleteLink = async (data: IDeleteLink) => {
     return;
   }
 
-  await knex<Visit>(prefix+"visits")
+  await knex<Visit>(prefix + "visits")
     .where("link_id", link.id)
     .delete();
 
-  const deletedLink = await knex<Link>(prefix+"links")
+  const deletedLink = await knex<Link>(prefix + "links")
     .where("id", link.id)
     .delete();
 
@@ -332,7 +337,7 @@ export const getStats = async (link: Link, domain: Domain) => {
     }
   };
 
-  const visitsStream: any = knex<Visit>(prefix+"visits")
+  const visitsStream: any = knex<Visit>(prefix + "visits")
     .where("link_id", link.id)
     .stream();
   const nowUTC = getUTCDate();
@@ -483,7 +488,7 @@ export const banLink = async (data: IBanLink) => {
   const banned_by_id = data.adminId;
 
   // Ban link
-  const [link]: Link[] = await knex<Link>(prefix+"links")
+  const [link]: Link[] = await knex<Link>(prefix + "links")
     .where({ address: data.address, domain_id: null })
     .update(
       { banned: true, banned_by_id, updated_at: new Date().toISOString() },
@@ -496,7 +501,7 @@ export const banLink = async (data: IBanLink) => {
   if (data.banUser && link.user_id) {
     tasks.push(banUser(link.user_id, banned_by_id));
     tasks.push(
-      knex<Link>(prefix+"links")
+      knex<Link>(prefix + "links")
         .where({ user_id: link.user_id })
         .update(
           { banned: true, banned_by_id, updated_at: new Date().toISOString() },

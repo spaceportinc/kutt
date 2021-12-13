@@ -1,3 +1,3 @@
 import env from "../env";
 
-export default env.DB_PREFIX
+export default env.DB_PREFIX;

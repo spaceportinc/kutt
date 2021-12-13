@@ -3,7 +3,7 @@ import env from "../env";
 import { v1 as NEO4J } from "neo4j-driver";
 import PQuque from "p-queue";
 import knex from "knex";
-import prefix from '../models/prefix';
+import prefix from "../models/prefix";
 
 const queue = new PQuque({ concurrency: 10 });
 
@@ -56,17 +56,17 @@ const postgres = knex({
             ...(cooldowns && cooldowns.length && { cooldowns })
           };
 
-          const exists = await postgres<User>(prefix+"users")
+          const exists = await postgres<User>(prefix + "users")
             .where({
               email
             })
             .first();
           if (exists) {
-            await postgres<User>(prefix+"users")
+            await postgres<User>(prefix + "users")
               .where("id", exists.id)
               .update(data);
           } else {
-            await postgres<User>(prefix+"users").insert(data);
+            await postgres<User>(prefix + "users").insert(data);
           }
         });
       },
