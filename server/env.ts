@@ -10,6 +10,7 @@ const env = cleanEnv(process.env, {
   DB_NAME: str({ default: "postgres" }),
   DB_USER: str(),
   DB_PASSWORD: str(),
+  DB_PREFIX: str({ default: "kutt" }),
   DB_SSL: bool({ default: false }),
   DB_POOL_MIN: num({ default: 2 }),
   DB_POOL_MAX: num({ default: 10 }),

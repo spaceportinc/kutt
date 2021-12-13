@@ -1,9 +1,10 @@
 import * as Knex from "knex";
+import prefix from './prefix';
 
 export async function createUserTable(knex: Knex) {
-  const hasTable = await knex.schema.hasTable("users");
+  const hasTable = await knex.schema.hasTable(prefix+"users");
   if (!hasTable) {
-    await knex.schema.createTable("users", table => {
+    await knex.schema.createTable(prefix+"users", table => {
       table.increments("id").primary();
       table.string("apikey");
       table
@@ -13,7 +14,7 @@ export async function createUserTable(knex: Knex) {
       table
         .integer("banned_by_id")
         .references("id")
-        .inTable("users");
+        .inTable(prefix+"users");
       table.specificType("cooldowns", "timestamptz[]");
       table
         .string("email")

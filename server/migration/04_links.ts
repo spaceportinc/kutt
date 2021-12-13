@@ -4,6 +4,7 @@ import { v1 as NEO4J } from "neo4j-driver";
 import { startOfHour } from "date-fns";
 import PQueue from "p-queue";
 import knex from "knex";
+import prefix from '../models/prefix';
 
 let count = 0;
 const queue = new PQueue({ concurrency: 5 });
@@ -115,11 +116,11 @@ const postgres = knex({
                   // 5. [Postgres] Find matching user and or domain
                   const [user, domain] = await Promise.all([
                     email &&
-                      postgres<User>("users")
+                      postgres<User>(prefix+"users")
                         .where({ email })
                         .first(),
                     address &&
-                      postgres<Domain>("domains")
+                      postgres<Domain>(prefix+"domains")
                         .where({ address })
                         .first()
                   ]);
@@ -136,7 +137,7 @@ const postgres = knex({
                     ...(link.createdAt && { created_at: link.createdAt })
                   };
 
-                  const res = await postgres<Link>("links").insert(data, "id");
+                  const res = await postgres<Link>(prefix+"links").insert(data, "id");
                   const link_id = res[0];
 
                   // 7. [Postgres] Create visits
@@ -163,7 +164,7 @@ const postgres = knex({
                     })
                   );
 
-                  await postgres<Visit>("visits").insert(newVisits);
+                  await postgres<Visit>(prefix+"visits").insert(newVisits);
                 });
               },
               onCompleted() {

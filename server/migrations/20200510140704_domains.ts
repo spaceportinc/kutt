@@ -1,5 +1,6 @@
 import * as Knex from "knex";
 import * as models from "../models";
+import prefix from '../models/prefix';
 
 export async function up(knex: Knex): Promise<any> {
   await models.createUserTable(knex);
@@ -11,11 +12,11 @@ export async function up(knex: Knex): Promise<any> {
 
   await Promise.all([
     knex.raw(`
-      ALTER TABLE domains
-      DROP CONSTRAINT IF EXISTS domains_user_id_unique
+      ALTER TABLE ${prefix}domains
+      DROP CONSTRAINT IF EXISTS ${prefix}domains_user_id_unique
     `),
     knex.raw(`
-      ALTER TABLE domains
+      ALTER TABLE ${prefix}domains
       ADD COLUMN IF NOT EXISTS uuid UUID DEFAULT uuid_generate_v4()
     `)
   ]);

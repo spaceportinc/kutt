@@ -3,6 +3,7 @@ import env from "../env";
 import { v1 as NEO4J } from "neo4j-driver";
 import knex from "knex";
 import PQueue from "p-queue";
+import prefix from '../models/prefix';
 
 const queue = new PQueue({ concurrency: 10 });
 
@@ -34,17 +35,17 @@ const postgres = knex({
         const host = record.get("h").properties;
         const address = host.name;
         const banned = !!host.banned;
-        const exists = await postgres<Host>("hosts")
+        const exists = await postgres<Host>(prefix+"hosts")
           .where({
             address
           })
           .first();
         if (exists) {
-          await postgres<Host>("hosts")
+          await postgres<Host>(prefix+"hosts")
             .where("id", exists.id)
             .update({ banned });
         } else {
-          await postgres<Host>("hosts").insert({
+          await postgres<Host>(prefix+"hosts").insert({
             address,
             banned
           });

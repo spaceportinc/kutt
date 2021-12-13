@@ -2,40 +2,40 @@ import bcrypt from "bcryptjs";
 
 import { CustomError } from "../utils";
 import * as redis from "../redis";
-import knex from "../knex";
+import knex, {prefix} from "../knex";
 
 const selectable = [
-  "links.id",
-  "links.address",
-  "links.banned",
-  "links.created_at",
-  "links.domain_id",
-  "links.updated_at",
-  "links.password",
-  "links.description",
-  "links.expire_in",
-  "links.target",
-  "links.visit_count",
-  "links.user_id",
-  "links.uuid",
-  "domains.address as domain"
+  prefix+"links.id",
+  prefix+"links.address",
+  prefix+"links.banned",
+  prefix+"links.created_at",
+  prefix+"links.domain_id",
+  prefix+"links.updated_at",
+  prefix+"links.password",
+  prefix+"links.description",
+  prefix+"links.expire_in",
+  prefix+"links.target",
+  prefix+"links.visit_count",
+  prefix+"links.user_id",
+  prefix+"links.uuid",
+  prefix+"domains.address as domain"
 ];
 
 const normalizeMatch = (match: Partial<Link>): Partial<Link> => {
   const newMatch = { ...match };
 
   if (newMatch.address) {
-    newMatch["links.address"] = newMatch.address;
+    newMatch[prefix+"links.address"] = newMatch.address;
     delete newMatch.address;
   }
 
   if (newMatch.user_id) {
-    newMatch["links.user_id"] = newMatch.user_id;
+    newMatch[prefix+"links.user_id"] = newMatch.user_id;
     delete newMatch.user_id;
   }
 
   if (newMatch.uuid) {
-    newMatch["links.uuid"] = newMatch.uuid;
+    newMatch[prefix+"links.uuid"] = newMatch.uuid;
     delete newMatch.uuid;
   }
 
@@ -47,7 +47,7 @@ interface TotalParams {
 }
 
 export const total = async (match: Match<Link>, params: TotalParams = {}) => {
-  const query = knex<Link>("links");
+  const query = knex<Link>(prefix+"links");
 
   Object.entries(match).forEach(([key, value]) => {
     query.andWhere(key, ...(Array.isArray(value) ? value : [value]));
@@ -55,7 +55,7 @@ export const total = async (match: Match<Link>, params: TotalParams = {}) => {
 
   if (params.search) {
     query.andWhereRaw(
-      "links.description || ' '  || links.address || ' ' || target ILIKE '%' || ? || '%'",
+      `${prefix}links.description || ' '  || ${prefix}links.address || ' ' || target ILIKE '%' || ? || '%'`,
       [params.search]
     );
   }
@@ -72,7 +72,7 @@ interface GetParams {
 }
 
 export const get = async (match: Partial<Link>, params: GetParams) => {
-  const query = knex<LinkJoinedDomain>("links")
+  const query = knex<LinkJoinedDomain>(prefix+"links")
     .select(...selectable)
     .where(normalizeMatch(match))
     .offset(params.skip)
@@ -81,12 +81,12 @@ export const get = async (match: Partial<Link>, params: GetParams) => {
 
   if (params.search) {
     query.andWhereRaw(
-      "concat_ws(' ', description, links.address, target, domains.address) ILIKE '%' || ? || '%'",
+      `concat_ws(' ', description, ${prefix}links.address, target, ${prefix}domains.address) ILIKE '%' || ? || '%'`,
       [params.search]
     );
   }
 
-  query.leftJoin("domains", "links.domain_id", "domains.id");
+  query.leftJoin(prefix+"domains", prefix+"links.domain_id", prefix+"domains.id");
 
   const links: LinkJoinedDomain[] = await query;
 
@@ -100,10 +100,10 @@ export const find = async (match: Partial<Link>): Promise<Link> => {
     if (cachedLink) return JSON.parse(cachedLink);
   }
 
-  const link = await knex<Link>("links")
+  const link = await knex<Link>(prefix+"links")
     .select(...selectable)
     .where(normalizeMatch(match))
-    .leftJoin("domains", "links.domain_id", "domains.id")
+    .leftJoin(prefix+"domains", prefix+"links.domain_id", prefix+"domains.id")
     .first();
 
   if (link) {
@@ -128,7 +128,7 @@ export const create = async (params: Create) => {
   }
 
   const [link]: LinkJoinedDomain[] = await knex<LinkJoinedDomain>(
-    "links"
+    prefix+"links"
   ).insert(
     {
       password: encryptedPassword,
@@ -146,7 +146,7 @@ export const create = async (params: Create) => {
 };
 
 export const remove = async (match: Partial<Link>) => {
-  const link = await knex<Link>("links")
+  const link = await knex<Link>(prefix+"links")
     .where(match)
     .first();
 
@@ -154,7 +154,7 @@ export const remove = async (match: Partial<Link>) => {
     throw new CustomError("Link was not found.");
   }
 
-  const deletedLink = await knex<Link>("links")
+  const deletedLink = await knex<Link>(prefix+"links")
     .where("id", link.id)
     .delete();
 
@@ -164,8 +164,8 @@ export const remove = async (match: Partial<Link>) => {
 };
 
 export const batchRemove = async (match: Match<Link>) => {
-  const deleteQuery = knex<Link>("links");
-  const findQuery = knex<Link>("links");
+  const deleteQuery = knex<Link>(prefix+"links");
+  const findQuery = knex<Link>(prefix+"links");
 
   Object.entries(match).forEach(([key, value]) => {
     findQuery.andWhere(key, ...(Array.isArray(value) ? value : [value]));
@@ -180,7 +180,7 @@ export const batchRemove = async (match: Match<Link>) => {
 };
 
 export const update = async (match: Partial<Link>, update: Partial<Link>) => {
-  const links = await knex<Link>("links")
+  const links = await knex<Link>(prefix+"links")
     .where(match)
     .update({ ...update, updated_at: new Date().toISOString() }, "*");
 
@@ -190,7 +190,7 @@ export const update = async (match: Partial<Link>, update: Partial<Link>) => {
 };
 
 export const increamentVisit = async (match: Partial<Link>) => {
-  return knex<Link>("links")
+  return knex<Link>(prefix+"links")
     .where(match)
     .increment("visit_count", 1);
 };

@@ -1,10 +1,11 @@
 import * as Knex from "knex";
+import prefix from './prefix';
 
 export async function createDomainTable(knex: Knex) {
-  const hasTable = await knex.schema.hasTable("domains");
+  const hasTable = await knex.schema.hasTable(prefix+"domains");
   if (!hasTable) {
     await knex.schema.raw('create extension if not exists "uuid-ossp"');
-    await knex.schema.createTable("domains", table => {
+    await knex.schema.createTable(prefix+"domains", table => {
       table.increments("id").primary();
       table
         .boolean("banned")
@@ -13,7 +14,7 @@ export async function createDomainTable(knex: Knex) {
       table
         .integer("banned_by_id")
         .references("id")
-        .inTable("users");
+        .inTable(prefix+"users");
       table
         .string("address")
         .unique()
@@ -22,7 +23,7 @@ export async function createDomainTable(knex: Knex) {
       table
         .integer("user_id")
         .references("id")
-        .inTable("users")
+        .inTable(prefix+"users")
         .onDelete("SET NULL");
       table
         .uuid("uuid")

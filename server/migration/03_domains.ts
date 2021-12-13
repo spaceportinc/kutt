@@ -3,6 +3,7 @@ import env from "../env";
 import { v1 as NEO4J } from "neo4j-driver";
 import PQueue from "p-queue";
 import knex from "knex";
+import prefix from '../models/prefix';
 
 const queue = new PQueue({ concurrency: 1 });
 
@@ -40,7 +41,7 @@ const postgres = knex({
           // 4. [Postgres] Get user ID
           const user =
             email &&
-            (await postgres<User>("users")
+            (await postgres<User>(prefix+"users")
               .where({ email })
               .first());
 
@@ -57,17 +58,17 @@ const postgres = knex({
             ...(user_id && { user_id })
           };
 
-          const exists = await postgres<Domain>("domains")
+          const exists = await postgres<Domain>(prefix+"domains")
             .where({
               address
             })
             .first();
           if (exists) {
-            await postgres<Domain>("domains")
+            await postgres<Domain>(prefix+"domains")
               .where("id", exists.id)
               .update(data);
           } else {
-            await postgres<Domain>("domains").insert(data);
+            await postgres<Domain>(prefix+"domains").insert(data);
           }
         });
       },
