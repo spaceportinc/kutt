@@ -12,7 +12,7 @@ module.exports = {
       ssl: env.DB_SSL,
     },
     migrations: {
-      tableName: "knex_migrations",
+      tableName: env.DB_PREFIX+"knex_migrations",
       directory: "server/migrations"
     }
   }
